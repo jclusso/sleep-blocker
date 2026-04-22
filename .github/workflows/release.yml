@@ -12,16 +12,13 @@ on:
 
 jobs:
   build-and-release:
-    runs-on: macos-14
+    runs-on: macos-15
     permissions:
       contents: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Select Xcode
-        run: sudo xcode-select -switch /Applications/Xcode.app
 
       - name: Show tool versions
         run: |
@@ -50,10 +47,18 @@ jobs:
           echo "path=$path" >> $GITHUB_OUTPUT
           echo "Found DMG at $path"
 
-      - name: Create GitHub Release
+      - name: Create or update release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "${{ steps.tag.outputs.tag }}" "${{ steps.dmg.outputs.path }}" \
-            --title "SleepBlocker ${{ steps.tag.outputs.tag }}" \
-            --generate-notes
+          TAG="${{ steps.tag.outputs.tag }}"
+          DMG="${{ steps.dmg.outputs.path }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; uploading DMG (overwriting if present)."
+            gh release upload "$TAG" "$DMG" --clobber
+          else
+            echo "Creating release $TAG."
+            gh release create "$TAG" "$DMG" \
+              --title "SleepBlocker $TAG" \
+              --generate-notes
+          fi
