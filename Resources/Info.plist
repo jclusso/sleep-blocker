@@ -30,5 +30,7 @@
     <string>NSApplication</string>
     <key>NSHumanReadableCopyright</key>
     <string>Personal use</string>
+    <key>NSCameraUsageDescription</key>
+    <string>SleepBlocker checks if your camera is in use to avoid sleeping during video calls.</string>
 </dict>
 </plist>
