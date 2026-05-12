@@ -34,8 +34,9 @@ final class RuleEngine {
         let hasUnruledBlocker = userBlockers.contains { a in
             !store.rules.contains(where: { $0.matches(a) })
         }
+        let cameraInUse = CameraMonitor.isCameraInUse()
 
-        DebugLog.write("[SleepBlocker] evaluate: idle=\(String(format: "%.1f", idle))s rules=\(store.rules.count) blockers=\(userBlockers.count) unruledBlocker=\(hasUnruledBlocker)")
+        DebugLog.write("[SleepBlocker] evaluate: idle=\(String(format: "%.1f", idle))s rules=\(store.rules.count) blockers=\(userBlockers.count) unruledBlocker=\(hasUnruledBlocker) cameraInUse=\(cameraInUse)")
 
         var alreadyFired = Set<String>()
 
@@ -44,7 +45,8 @@ final class RuleEngine {
                 let key = cooldownKey(for: a, rule: rule)
                 if alreadyFired.contains(key) { continue }
 
-                if rule.action == .forceSleep && hasUnruledBlocker {
+                if rule.action == .forceSleep && (hasUnruledBlocker || cameraInUse) {
+                    DebugLog.write("[SleepBlocker] skipping forceSleep: unruled=\(hasUnruledBlocker) camera=\(cameraInUse)")
                     continue
                 }
 
